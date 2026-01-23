@@ -1,0 +1,15 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": [
+    "###",
+    "###",
+    "###"
+  ],
+  "key": {
+    "#": "minecraft:dirt"
+  },
+  "result": {
+    "id": "mod:example_item",
+    "count": 9
+  }
+}

@@ -1,0 +1,35 @@
+{
+  "schemaVersion": 1,
+  "id": "mod",
+  "version": "${version}",
+  "name": "Mod",
+  "description": "",
+  "authors": [],
+  "contact": {},
+  "license": "All-Rights-Reserved",
+  "icon": "assets/mod/icon.png",
+  "environment": "*",
+  "entrypoints": {
+    "fabric-datagen": [
+      "org.codecooker.mod.client.ModDataGenerator"
+    ],
+    "client": [
+      "org.codecooker.mod.client.ModClient"
+    ],
+    "main": [
+      "org.codecooker.mod.Mod"
+    ]
+  },
+  "mixins": [
+    "mod.mixins.json",
+    {
+      "config": "mod.client.mixins.json",
+      "environment": "client"
+    }
+  ],
+  "depends": {
+    "fabricloader": ">=${loader_version}",
+    "fabric-api": "*",
+    "minecraft": "${minecraft_version}"
+  }
+}
