@@ -3,10 +3,10 @@
   "id": "mod",
   "version": "${version}",
   "name": "Mod",
-  "description": "",
-  "authors": [],
+  "description": "A mod to make minecraft more exciting. Every time you place or break a block there's a chance that will spawn an exploding TNT.",
+  "authors": ["githib.com/codecooker1"],
   "contact": {},
-  "license": "All-Rights-Reserved",
+  "license": "GNU GPL V3",
   "icon": "assets/mod/icon.png",
   "environment": "*",
   "entrypoints": {
@@ -18,6 +18,9 @@
     ],
     "main": [
       "org.codecooker.mod.Mod"
+    ],
+    "modmenu": [
+      "org.codecooker.mod.ModMenuIntegration"
     ]
   },
   "mixins": [
