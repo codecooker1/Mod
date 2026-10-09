@@ -6,5 +6,6 @@ public class ModClient implements ClientModInitializer {
 
     @Override
     public void onInitializeClient() {
+
     }
 }
