@@ -1,4 +1,4 @@
-package org.codecooker.mod.client;
+package org.codecooker.roulette.client;
 
 import net.fabricmc.api.ClientModInitializer;
 

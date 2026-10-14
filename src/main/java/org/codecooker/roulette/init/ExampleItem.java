@@ -1,4 +1,4 @@
-package org.codecooker.mod.init;
+package org.codecooker.roulette.init;
 
 
 import net.minecraft.ChatFormatting;

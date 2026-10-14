@@ -1,38 +1,59 @@
 {
   "schemaVersion": 1,
-  "id": "mod",
+  "id": "roulette",
   "version": "${version}",
-  "name": "Mod",
-  "description": "A mod to make minecraft more exciting. Every time you place or break a block there's a chance that will spawn an exploding TNT.",
-  "authors": ["githib.com/codecooker1"],
-  "contact": {},
-  "license": "GNU GPL V3 ",
-  "icon": "assets/mod/icon.png",
+  "name": "Roulette",
+  "description": "Feel the thrill of playing Russian Roulette right inside Minecraft! Building or mining? Be careful, cause it can go BOOM BOOM anytime!",
+  "authors": [
+    {
+      "name": "Codecooker Mintz",
+      "contact": {
+        "email": "codecookermintz@proton.me",
+        "discord": "https://discord.com/users/1391799320008986654",
+        "slack": "https://hackclub.enterprise.slack.com/team/U099959PKJN",
+        "youtube": "https://www.youtube.com/channel/UCFzHiCfXo-BhTlSfVYtotRA",
+        "twitch": "https://www.twitch.tv/codecookermintz",
+        "github": "https://github.com/codecooker1"
+      }
+    }
+  ],
+  "contact": {
+    "email": "codecookermintz@proton.me",
+    "discord": "https://discord.com/users/1391799320008986654",
+    "slack": "https://hackclub.enterprise.slack.com/team/U099959PKJN",
+    "youtube": "https://www.youtube.com/channel/UCFzHiCfXo-BhTlSfVYtotRA",
+    "twitch": "https://www.twitch.tv/codecookermintz",
+    "github": "https://github.com/codecooker1",
+    "sources": "https://github.com/codecooker1/Mod"
+  },
+  "license": "GPL-3.0-or-later",
+  "icon": "assets/roulette/icon.png",
   "environment": "*",
   "entrypoints": {
     "fabric-datagen": [
-      "org.codecooker.mod.client.ModDataGenerator"
+      "org.codecooker.roulette.client.ModDataGenerator"
     ],
     "client": [
-      "org.codecooker.mod.client.ModClient"
+      "org.codecooker.roulette.client.ModClient"
     ],
     "main": [
-      "org.codecooker.mod.Mod"
+      "org.codecooker.roulette.Roulette"
     ],
     "modmenu": [
-      "org.codecooker.mod.ModMenuIntegration"
+      "org.codecooker.roulette.ModMenuIntegration"
     ]
   },
   "mixins": [
-    "mod.mixins.json",
+    "roulette.mixins.json",
     {
-      "config": "mod.client.mixins.json",
+      "config": "roulette.client.mixins.json",
       "environment": "client"
     }
   ],
   "depends": {
     "fabricloader": ">=${loader_version}",
     "fabric-api": "*",
+    "cloth-config": "*",
     "minecraft": "${minecraft_version}"
   }
 }

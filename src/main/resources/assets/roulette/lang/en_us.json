@@ -1,0 +1,61 @@
+{
+  "item.mod.example_item": "Example Item",
+  "itemTooltip.mod.example_item": "Hello",
+  "text.autoconfig.TNT Config.title": "Roulette Settings",
+
+  "message.TNT Config.boom": "%s tempted fate... BOOM!",
+
+  "text.autoconfig.TNT Config.category.general": "General",
+  "text.autoconfig.TNT Config.category.revolver": "Revolver",
+  "text.autoconfig.TNT Config.category.breaking": "Breaking",
+  "text.autoconfig.TNT Config.category.placing": "Placing",
+  "text.autoconfig.TNT Config.category.tuning": "Tuning",
+  "text.autoconfig.TNT Config.category.streamer": "Streamer",
+
+  "text.autoconfig.TNT Config.option.enabled": "Enabled",
+  "text.autoconfig.TNT Config.option.enabled.@Tooltip": "Master switch for the mod.",
+  "text.autoconfig.TNT Config.option.affectCreative": "Affect Creative Players",
+  "text.autoconfig.TNT Config.option.affectCreative.@Tooltip": "Off by default so you can build sets safely.",
+  "text.autoconfig.TNT Config.option.resetStreakOnDeath": "Reset Streak On Death",
+  "text.autoconfig.TNT Config.option.resetStreakOnDeath.@Tooltip": "Dying resets the risk meter to zero.",
+
+  "text.autoconfig.TNT Config.option.breakEnabled": "Roulette On Break",
+  "text.autoconfig.TNT Config.option.breakBaseChance": "Base Chance (%)",
+  "text.autoconfig.TNT Config.option.breakBaseChance.@Tooltip": "Starting chance per broken block.",
+  "text.autoconfig.TNT Config.option.breakEscalation": "Escalation (%)",
+  "text.autoconfig.TNT Config.option.breakEscalation.@Tooltip": "Chance added for every safe block.",
+  "text.autoconfig.TNT Config.option.ignoreInstantBreakBlocks": "Ignore Instant-Break Blocks",
+  "text.autoconfig.TNT Config.option.ignoreInstantBreakBlocks.@Tooltip": "Grass, flowers and torches never trigger TNT.",
+
+  "text.autoconfig.TNT Config.option.placeEnabled": "Roulette On Place",
+  "text.autoconfig.TNT Config.option.placeBaseChance": "Base Chance (%)",
+  "text.autoconfig.TNT Config.option.placeBaseChance.@Tooltip": "Starting chance per placed block.",
+  "text.autoconfig.TNT Config.option.placeEscalation": "Escalation (%)",
+  "text.autoconfig.TNT Config.option.placeEscalation.@Tooltip": "Chance added for every safe placement.",
+
+  "text.autoconfig.TNT Config.option.maxChance": "Max Chance (%)",
+  "text.autoconfig.TNT Config.option.maxChance.@Tooltip": "The risk meter never rises above this.",
+  "text.autoconfig.TNT Config.option.dudChance": "Dud Chance (%)",
+  "text.autoconfig.TNT Config.option.dudChance.@Tooltip": "Share of triggers that fizzle harmlessly.",
+  "text.autoconfig.TNT Config.option.fuseTicks": "Fuse (ticks)",
+  "text.autoconfig.TNT Config.option.fuseTicks.@Tooltip": "20 ticks = 1 second. Vanilla TNT is 80.",
+  "text.autoconfig.TNT Config.option.graceSeconds": "Grace Period (s)",
+  "text.autoconfig.TNT Config.option.graceSeconds.@Tooltip": "Seconds of safety after a TNT or dud.",
+
+  "text.autoconfig.TNT Config.option.showCylinder": "Show Cylinder",
+  "text.autoconfig.TNT Config.option.showCylinder.@Tooltip": "Show Revolver Cylinder Guess. Great for chat engagement.",
+  "text.autoconfig.TNT Config.option.clickSound": "Click Sound",
+  "text.autoconfig.TNT Config.option.clickSound.@Tooltip": "Show Revolver Cylinder Guess. Great for chat engagement.",
+  "text.autoconfig.TNT Config.option.announceInChat": "Announce In Chat",
+  "text.autoconfig.TNT Config.option.announceInChat.@Tooltip": "Broadcasts a message when TNT spawns.",
+
+  "text.autoconfig.TNT Config.option.chambers": "Revolver Chambers",
+  "text.autoconfig.TNT Config.option.chambers.@Tooltip": "Number of Chambers in the Revolver. It affects the chances.",
+  "text.autoconfig.TNT Config.option.bullets": "Bullets",
+  "text.autoconfig.TNT Config.option.bullets.@Tooltip": "Maximum number of bullets in loaded in the chamber. Higher the bullet count, higher the chances of TNT spawning.",
+  "text.autoconfig.TNT Config.option.respinAfterClick": "Respin after every shot.",
+  "text.autoconfig.TNT Config.option.respinAfterClick.@Tooltip": "Respining makes the probability linear instead of being incremental.",
+  "text.autoconfig.TNT Config.option.misfireChance": "Misfire Chance",
+  "text.autoconfig.TNT Config.option.misfireChance.@Tooltip": "Chance in percent of spawning a dud instead of blowing you up."
+
+}

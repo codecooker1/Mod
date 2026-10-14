@@ -1,4 +1,4 @@
-package org.codecooker.mod.init;
+package org.codecooker.roulette.init;
 
 import net.fabricmc.fabric.api.itemgroup.v1.ItemGroupEvents;
 import net.fabricmc.fabric.api.registry.FuelRegistryEvents;
@@ -9,7 +9,7 @@ import net.minecraft.resources.Identifier;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.world.item.CreativeModeTabs;
 import net.minecraft.world.item.Item;
-import org.codecooker.mod.Mod;
+import org.codecooker.roulette.Roulette;
 
 import java.util.function.Function;
 
@@ -17,7 +17,7 @@ public class ModItems {
     public static final Item EXAMPLE_ITEM = register("example_item", ExampleItem::new, new ExampleItem.Properties());
 
     public static <GenericItem extends Item> GenericItem register(String name, Function<Item.Properties, GenericItem> itemFactory, Item.Properties settings) {
-        ResourceKey<Item> itemKey = ResourceKey.create(Registries.ITEM, Identifier.fromNamespaceAndPath(Mod.MOD_ID, name));
+        ResourceKey<Item> itemKey = ResourceKey.create(Registries.ITEM, Identifier.fromNamespaceAndPath(Roulette.MOD_ID, name));
 
         GenericItem item = itemFactory.apply(settings.setId(itemKey));
 

@@ -1,4 +1,4 @@
-package org.codecooker.mod;
+package org.codecooker.roulette;
 
 import com.terraformersmc.modmenu.api.ConfigScreenFactory;
 import com.terraformersmc.modmenu.api.ModMenuApi;
