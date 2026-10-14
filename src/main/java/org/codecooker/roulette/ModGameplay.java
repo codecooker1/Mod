@@ -149,8 +149,8 @@ public class ModGameplay {
             return false;
         }
 
-        revolver.bullets--;
-        if(revolver.bullets == 0){
+        revolver.remainingBullets--;
+        if(revolver.remainingBullets == 0){
             revolver.load(config.chambers, config.bullets, random);
         }
 

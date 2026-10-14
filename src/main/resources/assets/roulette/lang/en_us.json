@@ -10,7 +10,7 @@
   "text.autoconfig.TNT Config.category.breaking": "Breaking",
   "text.autoconfig.TNT Config.category.placing": "Placing",
   "text.autoconfig.TNT Config.category.tuning": "Tuning",
-  "text.autoconfig.TNT Config.category.streamer": "Streamer",
+  "text.autoconfig.TNT Config.category.others": "Others",
 
   "text.autoconfig.TNT Config.option.enabled": "Enabled",
   "text.autoconfig.TNT Config.option.enabled.@Tooltip": "Master switch for the mod.",
