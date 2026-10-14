@@ -3,6 +3,7 @@ package org.codecooker.roulette;
 import it.unimi.dsi.fastutil.objects.Object2LongMap;
 import it.unimi.dsi.fastutil.objects.Object2LongOpenHashMap;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
+import net.fabricmc.fabric.api.event.lifecycle.v1.ServerTickEvents;
 import net.fabricmc.fabric.api.event.player.PlayerBlockBreakEvents;
 import net.fabricmc.fabric.api.event.player.UseBlockCallback;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayConnectionEvents;
@@ -30,9 +31,7 @@ import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.BlockHitResult;
 import org.jspecify.annotations.Nullable;
 
-import java.util.HashMap;
-import java.util.Map;
-import java.util.UUID;
+import java.util.*;
 
 public class ModGameplay {
 
@@ -42,7 +41,11 @@ public class ModGameplay {
 
     private enum Source {Break, Place};
 
+    private static final Component BOOM = Component.literal("BOOM!").withStyle(ChatFormatting.RED, ChatFormatting.BOLD);
 
+    private record PendingPlace(ServerPlayer player, ServerLevel level, BlockPos pos, BlockState beforeState) {}
+
+    private static final List<PendingPlace> PENDING_PLACES = new ArrayList<>();
 
     public static final class Revolver {
         private boolean[] cylinder = new boolean[0];
@@ -82,8 +85,9 @@ public class ModGameplay {
         boolean pull(RandomSource random, boolean respin) {
             boolean bang = cylinder[pos];
             clicks++;
+            cylinder[pos] = false;
 
-            if (respin && !bang) {
+            if (respin) {
                 pos = random.nextInt(cylinder.length);
             } else{
                 pos = (pos + 1) % cylinder.length;
@@ -102,7 +106,7 @@ public class ModGameplay {
 
     private static void showClick(Player player, Level level, BlockPos pos, Revolver revolver, TNTRouletteConfig config){
         if(config.clickSound){
-            level.playLocalSound(pos, SoundEvents.DISPENSER_FAIL, SoundSource.PLAYERS, 1.0f, 1.0f, false);
+            level.playSound(null, pos, SoundEvents.DISPENSER_FAIL, SoundSource.PLAYERS, 1.0f, 1.0f);
         }
 
         if(!config.showCylinder) return;
@@ -112,59 +116,58 @@ public class ModGameplay {
             text = "Click.... (Cylinder Spun)";
         } else  {
             int used = revolver.clicks();
-            text = "Click  [" + "○".repeat(used) + "●".repeat(revolver.chambers() - used) + "]";
+            text = "Click  [" + "o".repeat(used) + "*".repeat(revolver.chambers() - used) + "]";
         }
 
         player.displayClientMessage(Component.literal(text).withStyle(ChatFormatting.GRAY), true);
     }
 
-    private static boolean pullTrigger(ServerPlayer player, ServerLevel level, BlockPos pos, Source source) {
-        TNTRouletteConfig config = Roulette.config();
+    private static boolean canPullTrigger(ServerPlayer player, ServerLevel level, TNTRouletteConfig  config, Source source){
+        return config.enabled && !player.isSpectator() &&
+                (player.getAbilities().instabuild && !config.affectCreative) &&
+                (level.getGameTime() > GRACE_UNTIL.getLong(player.getUUID())) &&
+                ((source == Source.Place && !config.placeEnabled) || (source == Source.Break && !config.breakEnabled));
+    }
+
+    private static boolean passedBaseChance(RandomSource random, TNTRouletteConfig config, Source source) {
+        int baseChance = source == Source.Place ? config.placeBaseChance : config.breakBaseChance;
+        return random.nextFloat() < baseChance;
+    }
+
+    private static boolean pullTrigger(ServerPlayer player, ServerLevel level, BlockPos pos, TNTRouletteConfig config, Source source) {
         UUID id = player.getUUID();
 
-        if (!config.enabled || player.isSpectator() ||
-                (player.getAbilities().instabuild && !config.affectCreative) ||
-                (level.getGameTime() < GRACE_UNTIL.getLong(id))) {
-            return false;
-        }
-
-        int baseChance =0;
-        if(source == Source.Break){
-            baseChance = config.breakBaseChance;
-        } else if(source == Source.Place){
-            baseChance = config.placeBaseChance;
-        }
-
         RandomSource random = player.getRandom();
-
-        if(random.nextInt(100) >= baseChance){
-            return false;
-        }
 
         Revolver revolver = REVOLVERS.computeIfAbsent(id, k -> new Revolver());
         revolver.ensureLoaded(config, random);
 
-        if(!revolver.pull(random, config.respinAfterClick)){
+        boolean gotBang = revolver.pull(random, config.respinAfterClick);
+
+        if(revolver.clicks() >= revolver.chambers()){
+            revolver.load(config.chambers, config.bullets, random);
+            System.out.println(revolver.clicks());
+        }
+
+        if(!gotBang){
             showClick(player, level, pos, revolver, config);
             return false;
         }
 
         revolver.remainingBullets--;
-        if(revolver.remainingBullets == 0){
-            revolver.load(config.chambers, config.bullets, random);
-        }
+
 
         GRACE_UNTIL.put(id, level.getGameTime() + config.graceSeconds * 20L);
 
         if (config.showCylinder) {
-            player.displayClientMessage(Component.literal("BOOM!").withStyle(ChatFormatting.RED, ChatFormatting.BOLD), true);
+            player.displayClientMessage(BOOM, true);
         }
 
         if (random.nextInt(100) < config.misfireChance) {
             spawnDud(level, pos);
         } else {
             spawnTnt(level, pos, config.fuseTicks);
-            if (config.announceInChat && level.getServer() != null) {
+            if (config.announceInChat) {
                 level.getServer().getPlayerList().broadcastSystemMessage(Component.literal("").append(player.getDisplayName()).append(Component.literal(" GOT THE BOOM!")), false);
             }
         }
@@ -193,33 +196,65 @@ public class ModGameplay {
 
     private static InteractionResult onPlace(Player player, Level level, InteractionHand interactionHand, BlockHitResult blockHitResult) {
         if (!(level instanceof ServerLevel sl) || !(player instanceof ServerPlayer sp)) return InteractionResult.PASS;
-        if (!Roulette.config().placeEnabled) return InteractionResult.PASS;
+
+        TNTRouletteConfig config = Roulette.config();
+        if(!canPullTrigger(sp, sl, config, Source.Place)) return InteractionResult.PASS;
+        if (blockHitResult.getType() != BlockHitResult.Type.BLOCK) return InteractionResult.PASS;
 
         ItemStack stack = player.getItemInHand(interactionHand);
         if (!(stack.getItem() instanceof BlockItem)) return InteractionResult.PASS;
 
+        if(!passedBaseChance(player.getRandom(), config, Source.Place)) return InteractionResult.PASS;
+
         BlockPos pos = blockHitResult.getBlockPos();
         if (!player.isSecondaryUseActive() && level.getBlockState(pos).getMenuProvider(level, pos) != null) return InteractionResult.PASS;
+        if (pos.equals(player.blockPosition().below()) && !level.getBlockState(pos).isAir()) return   InteractionResult.PASS;
 
-        BlockPlaceContext ctx = new BlockPlaceContext(player, interactionHand, stack, blockHitResult);
-        if (!ctx.canPlace()) return InteractionResult.PASS;
+        BlockPos target = new BlockPlaceContext(player, interactionHand, stack, blockHitResult).getClickedPos().immutable();
 
-        if (pullTrigger(sp, sl, ctx.getClickedPos(), Source.Place)) {
-            if (!player.getAbilities().instabuild) stack.shrink(1);
-            return InteractionResult.SUCCESS;
-        }
+        PENDING_PLACES.removeIf(p -> p.player() == sp && p.pos().equals(target));
+        PENDING_PLACES.add(new PendingPlace(sp, sl, target, sl.getBlockState(target)));
+
         return InteractionResult.PASS;
+    }
+
+    private static void processPendingPlace() {
+        if (PENDING_PLACES.isEmpty()) return;
+
+        try {
+            TNTRouletteConfig config = Roulette.config();
+
+            for  (PendingPlace p : PENDING_PLACES) {
+                ServerLevel level = p.level;
+                ServerPlayer player = p.player;
+
+                if(player.isRemoved() || player.level() != level) continue;
+
+                BlockState now = level.getBlockState(p.pos());
+
+                if(now.isAir() || now == p.beforeState()) continue;
+
+                if(!canPullTrigger(player, level, config, Source.Place)) continue;
+
+                if(pullTrigger(player, level, p.pos(), config, Source.Place)){
+                    level.destroyBlock(p.pos(), false);
+                }
+            }
+        } finally {
+            PENDING_PLACES.clear();
+        }
     }
 
     private static void onBreak(Level level, Player player, BlockPos blockPos, BlockState blockState, @Nullable BlockEntity blockEntity) {
         if (!(level instanceof ServerLevel sl) || !(player instanceof ServerPlayer sp)) return;
 
         TNTRouletteConfig config = Roulette.config();
-        if(!config.breakEnabled) return;
+        if(!canPullTrigger(sp, sl, config, Source.Break)) return;
 
         if(config.ignoreInstantBreakBlocks && blockState.getDestroySpeed(level, blockPos) <= 0.4f ) return;
+        if(!passedBaseChance(sp.getRandom(), config, Source.Break)) return;
 
-        pullTrigger(sp, sl, blockPos, Source.Break);
+        pullTrigger(sp, sl, blockPos, config, Source.Break);
     }
 
 
@@ -227,6 +262,7 @@ public class ModGameplay {
     public static void init(){
         PlayerBlockBreakEvents.AFTER.register(ModGameplay::onBreak);
         UseBlockCallback.EVENT.register(ModGameplay::onPlace);
+        ServerTickEvents.END_SERVER_TICK.register(server -> processPendingPlace());
 
         ServerPlayConnectionEvents.DISCONNECT.register((handler, server) -> {
             REVOLVERS.remove(handler.getPlayer().getUUID());
