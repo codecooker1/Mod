@@ -1,6 +1,4 @@
 {
-  "item.mod.example_item": "Example Item",
-  "itemTooltip.mod.example_item": "Hello",
   "text.autoconfig.TNT Config.title": "Roulette Settings",
 
   "message.TNT Config.boom": "%s tempted fate... BOOM!",

@@ -56,7 +56,7 @@ public class TNTRouletteConfig implements ConfigData {
     @ConfigEntry.BoundedDiscrete(min = 0, max = 100)
     public int placeBaseChance = 6;
 
-    //Streamer
+    //Others
     @ConfigEntry.Category("others") @ConfigEntry.Gui.Tooltip
     public boolean showCylinder = true;
 

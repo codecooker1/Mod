@@ -136,7 +136,7 @@ public class ModGameplay {
         return random.nextInt(100) < baseChance;
     }
 
-    private static boolean pullTrigger(ServerPlayer player, ServerLevel level, BlockPos pos, TNTRouletteConfig config, Source source) {
+    private static boolean pullTrigger(ServerPlayer player, ServerLevel level, BlockPos pos, TNTRouletteConfig config) {
         UUID id = player.getUUID();
         RandomSource random = player.getRandom();
 
@@ -235,7 +235,7 @@ public class ModGameplay {
 
                 if(!canPullTrigger(player, level, config, Source.Place)) continue;
 
-                if(pullTrigger(player, level, p.pos(), config, Source.Place)){
+                if(pullTrigger(player, level, p.pos(), config)){
                     level.destroyBlock(p.pos(), false);
                 }
             }
@@ -253,7 +253,7 @@ public class ModGameplay {
         if(config.ignoreInstantBreakBlocks && blockState.getDestroySpeed(level, blockPos) <= 0.4f ) return;
         if(!passedBaseChance(sp.getRandom(), config, Source.Break)) return;
 
-        pullTrigger(sp, sl, blockPos, config, Source.Break);
+        pullTrigger(sp, sl, blockPos, config);
     }
 
 
@@ -264,9 +264,10 @@ public class ModGameplay {
         ServerTickEvents.END_SERVER_TICK.register(server -> processPendingPlace());
 
         ServerPlayConnectionEvents.DISCONNECT.register((handler, server) -> {
-            REVOLVERS.remove(handler.getPlayer().getUUID());
-            GRACE_UNTIL.removeLong(handler.getPlayer().getUUID());
-            PENDING_PLACES.removeIf(p -> p.player() == handler.getPlayer());
+            Player scaredyCat = handler.getPlayer();
+            REVOLVERS.remove(scaredyCat.getUUID());
+            GRACE_UNTIL.removeLong(scaredyCat.getUUID());
+            PENDING_PLACES.removeIf(p -> p.player() == scaredyCat);
         });
 
         ServerLifecycleEvents.SERVER_STOPPED.register(server -> {
