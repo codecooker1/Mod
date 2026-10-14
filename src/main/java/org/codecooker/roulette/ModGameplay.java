@@ -39,7 +39,7 @@ public class ModGameplay {
     private static final Object2LongMap<UUID> GRACE_UNTIL = new Object2LongOpenHashMap<>();
     static { GRACE_UNTIL.defaultReturnValue(0L); }
 
-    private enum Source {Break, Place};
+    private enum Source {Break, Place}
 
     private static final Component BOOM = Component.literal("BOOM!").withStyle(ChatFormatting.RED, ChatFormatting.BOLD);
 
@@ -50,7 +50,6 @@ public class ModGameplay {
     public static final class Revolver {
         private boolean[] cylinder = new boolean[0];
         private int bullets;
-        private int remainingBullets = 0;
         private int pos;
         private int clicks;
 
@@ -59,7 +58,6 @@ public class ModGameplay {
 
             cylinder = new boolean[chambers];
             this.bullets = bullets;
-            this.remainingBullets = bullets;
 
             for (int i = 0; i < chambers; i++) {
                 cylinder[i] = i < bullets;
@@ -96,6 +94,9 @@ public class ModGameplay {
             return bang;
         }
 
+        boolean cycleComplete(){
+            return clicks >= cylinder.length;
+        }
         int clicks() {
             return clicks;
         }
@@ -122,21 +123,21 @@ public class ModGameplay {
         player.displayClientMessage(Component.literal(text).withStyle(ChatFormatting.GRAY), true);
     }
 
-    private static boolean canPullTrigger(ServerPlayer player, ServerLevel level, TNTRouletteConfig  config, Source source){
-        return config.enabled && !player.isSpectator() &&
-                (player.getAbilities().instabuild && !config.affectCreative) &&
-                (level.getGameTime() > GRACE_UNTIL.getLong(player.getUUID())) &&
-                ((source == Source.Place && !config.placeEnabled) || (source == Source.Break && !config.breakEnabled));
+    private static boolean canPullTrigger(ServerPlayer player, ServerLevel level, TNTRouletteConfig config, Source source) {
+        if (!config.enabled || player.isSpectator()) return false;
+        if (player.getAbilities().instabuild && !config.affectCreative) return false;
+        if (source == Source.Place && !config.placeEnabled) return false;
+        if (source == Source.Break && !config.breakEnabled) return false;
+        return level.getGameTime() >= GRACE_UNTIL.getLong(player.getUUID());
     }
 
     private static boolean passedBaseChance(RandomSource random, TNTRouletteConfig config, Source source) {
         int baseChance = source == Source.Place ? config.placeBaseChance : config.breakBaseChance;
-        return random.nextFloat() < baseChance;
+        return random.nextInt(100) < baseChance;
     }
 
     private static boolean pullTrigger(ServerPlayer player, ServerLevel level, BlockPos pos, TNTRouletteConfig config, Source source) {
         UUID id = player.getUUID();
-
         RandomSource random = player.getRandom();
 
         Revolver revolver = REVOLVERS.computeIfAbsent(id, k -> new Revolver());
@@ -144,18 +145,19 @@ public class ModGameplay {
 
         boolean gotBang = revolver.pull(random, config.respinAfterClick);
 
-        if(revolver.clicks() >= revolver.chambers()){
-            revolver.load(config.chambers, config.bullets, random);
-            System.out.println(revolver.clicks());
-        }
-
         if(!gotBang){
             showClick(player, level, pos, revolver, config);
+            if(revolver.cycleComplete()){
+                revolver.load(config.chambers, config.bullets, random);
+                System.out.println(revolver.clicks());
+            }
             return false;
         }
 
-        revolver.remainingBullets--;
-
+        if(revolver.cycleComplete()){
+            revolver.load(config.chambers, config.bullets, random);
+            System.out.println(revolver.clicks());
+        }
 
         GRACE_UNTIL.put(id, level.getGameTime() + config.graceSeconds * 20L);
 
@@ -165,6 +167,7 @@ public class ModGameplay {
 
         if (random.nextInt(100) < config.misfireChance) {
             spawnDud(level, pos);
+            return false;
         } else {
             spawnTnt(level, pos, config.fuseTicks);
             if (config.announceInChat) {
@@ -205,10 +208,6 @@ public class ModGameplay {
         if (!(stack.getItem() instanceof BlockItem)) return InteractionResult.PASS;
 
         if(!passedBaseChance(player.getRandom(), config, Source.Place)) return InteractionResult.PASS;
-
-        BlockPos pos = blockHitResult.getBlockPos();
-        if (!player.isSecondaryUseActive() && level.getBlockState(pos).getMenuProvider(level, pos) != null) return InteractionResult.PASS;
-        if (pos.equals(player.blockPosition().below()) && !level.getBlockState(pos).isAir()) return   InteractionResult.PASS;
 
         BlockPos target = new BlockPlaceContext(player, interactionHand, stack, blockHitResult).getClickedPos().immutable();
 
@@ -267,11 +266,13 @@ public class ModGameplay {
         ServerPlayConnectionEvents.DISCONNECT.register((handler, server) -> {
             REVOLVERS.remove(handler.getPlayer().getUUID());
             GRACE_UNTIL.removeLong(handler.getPlayer().getUUID());
+            PENDING_PLACES.removeIf(p -> p.player() == handler.getPlayer());
         });
 
         ServerLifecycleEvents.SERVER_STOPPED.register(server -> {
             REVOLVERS.clear();
             GRACE_UNTIL.clear();
+            PENDING_PLACES.clear();
         });
     }
 
