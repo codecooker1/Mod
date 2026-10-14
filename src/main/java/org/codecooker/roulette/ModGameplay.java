@@ -52,15 +52,21 @@ public class ModGameplay {
         private int clicks;
 
         void load(int chambers, int bullets, RandomSource random) {
+            bullets = Math.min(bullets, chambers);
+
             cylinder = new boolean[chambers];
             this.bullets = bullets;
-            this.remainingBullets = 0;
+            this.remainingBullets = bullets;
 
-            for (int i = 0; (i < chambers || remainingBullets < bullets); i++) {
-                if(random.nextBoolean()){
-                    cylinder[i] = true;
-                    remainingBullets++;
-                }
+            for (int i = 0; i < chambers; i++) {
+                cylinder[i] = i < bullets;
+            }
+
+            for (int i = chambers - 1; i > 0; i--) {
+                int index = random.nextInt(i + 1);
+                boolean temp = cylinder[index];
+                cylinder[index] = cylinder[i];
+                cylinder[i] = temp;
             }
 
             pos = random.nextInt(chambers);
